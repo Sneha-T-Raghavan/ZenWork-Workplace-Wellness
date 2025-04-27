@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Confetti from 'react-confetti';
+import Navbar from '../components/Navbar';
 
 // ✨ Custom Hook: get window width and height
 const useWindowSize = () => {
@@ -101,7 +102,8 @@ const Bingogame = () => {
   }, [streak]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 flex flex-col items-center justify-center py-10 px-4 relative overflow-hidden">
+    <div className='flex flex-col items-center min-h-screen bg-[url("/bg_img.png")] bg-cover bg-center p-4 pt-20'>
+      <Navbar className="relative z-50" />
       <h1 className="text-4xl font-extrabold text-blue-800 mb-4 drop-shadow-lg text-center">Break Time Bingo</h1>
       <p className="text-center text-blue-900 mb-6 max-w-lg font-medium">
         Check off self-care tasks during your breaks. Complete a row, column, or diagonal to win! 🌟

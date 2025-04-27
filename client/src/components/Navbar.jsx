@@ -47,9 +47,9 @@ const Navbar = () => {
     <div className="w-full flex items-center justify-between p-4 sm:p-6 sm:px-24 absolute top-0 bg-F7EDF0">
   {/* Left: Logo */}
   <img
-    src={assets.logo}
+    src={assets.logo_cap}
     alt="Logo"
-    className="w-16 h-16 flex justify-center items-center rounded-sm"
+    className="w-50 h-16 flex justify-center items-center rounded-sm"
   />
 
   {/* Show Navigation Links Only If Logged In */}
@@ -79,6 +79,22 @@ const Navbar = () => {
           onClick={() => navigate("/journal")}
         >
           Journal
+        </li>
+        <li
+          className={`md:px-4 md:py-2 cursor-pointer ${
+            location.pathname === "/bingo-game" ?"text-[#2a4192]" : "hover:text-[#f9d4d2]"
+          }`}
+          onClick={() => navigate("/bingo-game")}
+        >
+          Bingo
+        </li>
+        <li
+          className={`md:px-4 md:py-2 cursor-pointer ${
+            location.pathname === "/break-timer-quest" ?"text-[#2a4192]" : "hover:text-[#f9d4d2]"
+          }`}
+          onClick={() => navigate("/break-timer-quest")}
+        >
+          Break Timer Quest
         </li>
       </ul>
     </div>

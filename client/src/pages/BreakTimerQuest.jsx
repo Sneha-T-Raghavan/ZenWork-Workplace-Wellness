@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 export default function BreakTimerQuest() {
   const [duration, setDuration] = useState(5); // default in minutes
@@ -57,7 +58,8 @@ export default function BreakTimerQuest() {
   const progress = circumference - (timeLeft / (duration * 60)) * circumference;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 px-4 py-10">
+    <div className='flex flex-col items-center min-h-screen bg-[url("/bg_img.png")] bg-cover bg-center p-4 pt-20'>
+      <Navbar className="relative z-50" />
       <h1 className="text-4xl font-extrabold text-indigo-800 mb-4 drop-shadow-sm">
         Break‑Timer Quest
       </h1>
