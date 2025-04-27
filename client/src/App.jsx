@@ -8,6 +8,8 @@ import EmailVerify from './pages/EmailVerify'
 import Pixelgame from './pages/Pixelgame'
 import Home from './pages/Home'
 import Journal from './pages/Journal';
+import Bingogame from './pages/Bingogame'
+import BreakTimerQuest from './pages/BreakTimerQuest'
 
 
 const App = () => {
@@ -21,6 +23,8 @@ const App = () => {
         <Route path="/email-verify" element={<EmailVerify />} />
         <Route path="/pixel-game" element={<Pixelgame />} />  
         <Route path='/journal' element={<Journal/>}/>
+        <Route path="/bingo-game" element={<Bingogame />} />
+        <Route path="/break-timer-quest" element={<BreakTimerQuest />} />
       </Routes>
     </div>
   )
