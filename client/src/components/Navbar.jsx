@@ -72,6 +72,14 @@ const Navbar = () => {
         >
           Pixel Art
         </li>
+        <li
+          className={`md:px-4 md:py-2 cursor-pointer ${
+            location.pathname === "/journal" ?"text-[#2a4192]" : "hover:text-[#f9d4d2]"
+          }`}
+          onClick={() => navigate("/journal")}
+        >
+          Journal
+        </li>
       </ul>
     </div>
   )}

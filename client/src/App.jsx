@@ -7,6 +7,7 @@ import ResetPassword from './pages/ResetPassword'
 import EmailVerify from './pages/EmailVerify'
 import Pixelgame from './pages/Pixelgame'
 import Home from './pages/Home'
+import Journal from './pages/Journal';
 
 
 const App = () => {
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/reset-password" element={<ResetPassword />} />  
         <Route path="/email-verify" element={<EmailVerify />} />
         <Route path="/pixel-game" element={<Pixelgame />} />  
+        <Route path='/journal' element={<Journal/>}/>
       </Routes>
     </div>
   )

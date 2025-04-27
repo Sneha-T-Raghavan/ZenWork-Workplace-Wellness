@@ -37,7 +37,11 @@ const userSchema = new mongoose.Schema({
     resetOtpExpireAt: {
         type: Number,
         default: 0
-    }
+    },
+    journalEntries: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Journal'
+    }]
 })
 
 const userModel = mongoose.models.user || mongoose.model('user', userSchema);
