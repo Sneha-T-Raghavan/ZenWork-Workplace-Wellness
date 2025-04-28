@@ -26,9 +26,16 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
       3: "#ebc9f6", // Light Purple
     },
     mushroom: {
-      1: "#ffffff", // White
-      2: "#ff0000", // Red
-      3: "#000000", // Black
+      1: "#0f103f", // Dark night sky
+      2: "#1a237e", // Deep blue
+      3: "#e6ee9c", // Stars yellow
+      4: "#f5f5f5", // Moon white
+      5: "#ff4081", // Mushroom cap
+      6: "#f50057", // Darker cap
+      7: "#f8bbd0", // Cap spots
+      8: "#d7ccc8", // Stem
+      9: "#004d40", // Dark grass
+      10: "#1b5e20" // Light grass
     },
   };
 
