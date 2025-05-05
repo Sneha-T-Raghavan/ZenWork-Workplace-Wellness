@@ -16,7 +16,7 @@ const Pixelgame = () => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [savedDrawings, setSavedDrawings] = useState([]);
-const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
+  const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
 
   // Color maps for templates
   const colorMaps = {
@@ -141,7 +141,8 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
           "text-xs",
           "font-bold",
           "border",
-          "border-gray-300"
+          "border-gray-300",
+          "no-select" // Add class for preventing text selection
         );
 
         cell.dataset.row = rowIndex;
@@ -153,8 +154,11 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
           cell.dataset.correctCode = code;
           cell.style.backgroundColor = "#233360";
           if (code !== 0) {
-            cell.textContent = code;
-            cell.style.color = "#ddd";
+            const span = document.createElement("span");
+            span.textContent = code;
+            span.style.color = "#ddd";
+            span.classList.add("pointer-events-none"); // Prevent span from receiving events
+            cell.appendChild(span);
           }
         }
 
@@ -184,17 +188,22 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
   };
 
   const handleCellClick = (e) => {
-    if (!e.target.classList.contains("flex")) return;
+    const cell = e.target.closest('.no-select');
+    if (!cell) return;
 
     if (currentTemplate === "free") {
-      e.target.style.backgroundColor = selectedColor;
+      cell.style.backgroundColor = selectedColor;
       saveStateToHistory();
     } else {
-      const code = parseInt(e.target.dataset.correctCode);
+      const code = parseInt(cell.dataset.correctCode);
       if (code !== 0 && selectedColorCode !== null) {
         if (selectedColorCode === code) {
-          e.target.style.backgroundColor = colorMaps[currentTemplate][code];
-          e.target.textContent = "";
+          cell.style.backgroundColor = colorMaps[currentTemplate][code];
+          // Clear the cell's text by emptying the span instead of setting textContent
+          const span = cell.querySelector('span');
+          if (span) {
+            span.style.display = 'none';
+          }
           saveStateToHistory();
         }
       }
@@ -202,7 +211,10 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
   };
 
   const handleMouseDown = (e) => {
-    if (!e.target.classList.contains("flex")) return;
+    const cell = e.target.closest('.no-select');
+    if (!cell) return;
+    
+    e.preventDefault(); // Prevent default selection behavior
     setIsMouseDown(true);
     handleCellClick(e);
   };
@@ -237,6 +249,21 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
     const cells = gridRef.current.querySelectorAll("div");
     cells.forEach((cell, index) => {
       cell.style.backgroundColor = state[index];
+      
+      // Show/hide the number based on background color
+      if (currentTemplate !== "free") {
+        const span = cell.querySelector('span');
+        if (span) {
+          const code = parseInt(cell.dataset.correctCode);
+          const coloredBackground = colorMaps[currentTemplate][code];
+          
+          if (cell.style.backgroundColor === coloredBackground) {
+            span.style.display = 'none';
+          } else {
+            span.style.display = '';
+          }
+        }
+      }
     });
   };
 
@@ -248,12 +275,17 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
       } else {
         const code = parseInt(cell.dataset.correctCode);
         cell.style.backgroundColor = "#233360";
-        cell.textContent = code === 0 ? "" : code;
-        cell.style.color = "#ddd";
+        
+        // Show the number again
+        const span = cell.querySelector('span');
+        if (span) {
+          span.style.display = '';
+        }
       }
     });
     saveStateToHistory();
   };
+  
   const saveDrawing = async () => {
     if (!userData) {
       toast.error("Please login to save your drawing");
@@ -289,6 +321,7 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
       setIsLoading(false);
     }
   };
+  
   const fetchUserDrawings = async () => {
     if (!userData) return;
     
@@ -327,6 +360,19 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
         drawing.pixelData.forEach((color, index) => {
           if (cells[index]) {
             cells[index].style.backgroundColor = color;
+            
+            // Handle number visibility when loading
+            if (currentTemplate !== "free") {
+              const span = cells[index].querySelector('span');
+              if (span) {
+                const code = parseInt(cells[index].dataset.correctCode);
+                const coloredBackground = colorMaps[currentTemplate][code];
+                
+                if (color === coloredBackground) {
+                  span.style.display = 'none';
+                }
+              }
+            }
           }
         });
         
@@ -550,6 +596,14 @@ const [isFetchingDrawings, setIsFetchingDrawings] = useState(false);
       <style jsx global>{`
         .font-pixelify {
           font-family: "Pixelify Sans", sans-serif;
+        }
+        
+        /* Disable text selection */
+        .no-select {
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
         }
       `}</style>
     </div>
