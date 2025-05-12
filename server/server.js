@@ -20,13 +20,7 @@ const allowedOrigins = [
 
 // Apply CORS middleware with dynamic origin checking
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin:"https://zenwork R3h9p0auv-sneha-t-raghavans-projects.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"], // Explicitly allow methods
   credentials: true // Support cookies and auth headers
 }));

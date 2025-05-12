@@ -754,10 +754,15 @@ router.delete("/:id", userAuth, deleteDrawing);
 const app = express();
 const port = process.env.PORT || 4e3;
 connectDB();
-const allowedOrigins = ["http://localhost:5173"];
+app.use(cors({
+  origin: "https://zenwork R3h9p0auv-sneha-t-raghavans-projects.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  // Explicitly allow methods
+  credentials: true
+  // Support cookies and auth headers
+}));
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.get("/", (req, res) => res.send("API Working"));
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
