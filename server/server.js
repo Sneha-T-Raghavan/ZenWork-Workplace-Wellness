@@ -12,7 +12,6 @@ const app = express();
 const port = process.env.PORT || 4000;
 connectDB();
 
-// Updated CORS configuration
 const allowedOrigins = [
   'https://zenwork-workplace-wellness.vercel.app',
   // Add any other origins you need to support, like development or preview URLs
@@ -24,7 +23,7 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, origin);
+      callback(null, true);  // Changed from callback(null, origin) to callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'));
     }
@@ -33,7 +32,6 @@ app.use(cors({
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 
