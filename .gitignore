@@ -1,2 +1,3 @@
 # Ignore .env inside server directory
 server/node_modules
+server/.env
