@@ -1,16 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { Calendar, Clock, Check, Tag, Edit, Trash2, Plus, Filter, ArrowUp, ArrowDown, Calendar as CalendarIcon, X } from 'lucide-react';
+import { Calendar, Clock, Check, Tag, Edit, Trash2, Plus, Filter, ArrowUp, ArrowDown, Calendar as CalendarIcon, X, List } from 'lucide-react';
+import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 // Sample color palette for categories
 const categoryColors = {
-  personal: 'bg-blue-100 text-blue-800',
-  professional: 'bg-purple-100 text-purple-800',
-  daily: 'bg-green-100 text-green-800',
-  weekly: 'bg-amber-100 text-amber-800',
-  monthly: 'bg-rose-100 text-rose-800',
-  urgent: 'bg-red-100 text-red-800',
-  calendar: 'bg-blue-100 text-blue-800'
+  personal: 'bg-blue-100 text-blue-800 border-blue-300',
+  professional: 'bg-purple-100 text-purple-800 border-purple-300',
+  daily: 'bg-green-100 text-green-800 border-green-300',
+  weekly: 'bg-amber-100 text-amber-800 border-amber-300',
+  monthly: 'bg-rose-100 text-rose-800 border-rose-300',
+  urgent: 'bg-red-100 text-red-800 border-red-300',
+  calendar: 'bg-blue-100 text-blue-800 border-blue-300'
 };
 
 // Google Calendar API Helper Functions
@@ -90,7 +94,6 @@ const initGoogleCalendar = async (showAlertMessage) => {
 
 const fetchCalendarEvents = async (setGoogleSignedIn, showAlertMessage) => {
   try {
-    // Check if token is available and valid
     if (!window.gapi || !window.gapi.client || !window.gapi.client.getToken()) {
       console.log('No valid token found');
       showAlertMessage('Please sign in to access Google Calendar events');
@@ -165,8 +168,11 @@ const TodoListPage = () => {
   const [googleSignedIn, setGoogleSignedIn] = useState(false);
   const [calendarSynced, setCalendarSynced] = useState(false);
   const [gisClient, setGisClient] = useState(null);
-  // Add this state to track if Google API is fully initialized
   const [googleApiInitialized, setGoogleApiInitialized] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // New state for view mode
+
+  // Initialize moment localizer for react-big-calendar
+  const localizer = momentLocalizer(moment);
 
   useEffect(() => {
     const setupGoogleCalendar = async () => {
@@ -215,8 +221,6 @@ const TodoListPage = () => {
             window.gapi.client.setToken({ access_token: response.access_token });
             setGoogleSignedIn(true);
             showAlertMessage('Google Sign-in successful');
-            
-            // Set a small delay before trying to sync calendar events
             setTimeout(() => {
               syncCalendarEvents();
             }, 500);
@@ -225,8 +229,7 @@ const TodoListPage = () => {
         setGisClient(client);
         console.log('GIS client initialized:', client);
         setGoogleApiInitialized(true);
-        
-        // Check if token exists already (for returning users who are already signed in)
+
         if (window.gapi && window.gapi.client && window.gapi.client.getToken()) {
           console.log('Found existing token, setting signed in state');
           setGoogleSignedIn(true);
@@ -415,40 +418,36 @@ const TodoListPage = () => {
     try {
       console.log('Syncing calendar events, signed in status:', googleSignedIn);
       console.log('Token available:', window.gapi && window.gapi.client && !!window.gapi.client.getToken());
-      
-      // More robust check for authentication
+
       if (!window.gapi || !window.gapi.client || !window.gapi.client.getToken()) {
         console.log('Authentication check failed');
-        
+
         if (!googleApiInitialized) {
           showAlertMessage('Google Calendar API is still initializing. Please try again in a moment.');
           return;
         }
-        
+
         if (!googleSignedIn) {
           showAlertMessage('Please sign in with Google first');
           return;
         }
-        
-        // Try to trigger sign in if we think we're signed in but have no token
+
         if (googleSignedIn && gisClient) {
           showAlertMessage('Session expired, requesting new authentication');
           gisClient.requestAccessToken();
           return;
         }
-        
+
         showAlertMessage('Authentication issue. Please sign in with Google again.');
         setGoogleSignedIn(false);
         return;
       }
 
-      // Wait briefly to ensure token is fully propagated
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       const calendarEvents = await fetchCalendarEvents(setGoogleSignedIn, showAlertMessage);
       console.log('Fetched events:', calendarEvents);
-      
-      // Only update if we actually got events
+
       if (Array.isArray(calendarEvents)) {
         const nonCalendarTasks = tasks.filter((task) => task.source !== 'google');
         setTasks([...nonCalendarTasks, ...calendarEvents]);
@@ -458,8 +457,7 @@ const TodoListPage = () => {
     } catch (error) {
       console.error('Error syncing calendar events:', error);
       showAlertMessage(`Failed to sync calendar events: ${error.message || 'Unknown error'}`);
-      
-      // Reset authentication state if there was an auth error
+
       if (error.status === 401 || error.status === 403) {
         setGoogleSignedIn(false);
       }
@@ -503,6 +501,37 @@ const TodoListPage = () => {
     if (diffDays === 0) return 'text-amber-600 font-semibold';
     if (diffDays <= 2) return 'text-amber-500';
     return 'text-green-600';
+  };
+
+  // Prepare events for calendar view
+  const calendarEvents = filteredTasks
+    .filter((task) => task.deadline)
+    .map((task) => ({
+      id: task.id,
+      title: task.title,
+      start: new Date(task.deadline),
+      end: new Date(task.deadline),
+      task: task // Store full task object for event details
+    }));
+
+  // Custom event styling for calendar
+  const eventStyleGetter = (event) => {
+    const category = event.task.category;
+    const style = {
+      backgroundColor: categoryColors[category]?.includes('bg-') 
+        ? categoryColors[category].split(' ')[0].replace('bg-', '#') + '33' 
+        : '#e5e7eb',
+      borderColor: categoryColors[category]?.includes('border-') 
+        ? categoryColors[category].split(' ').find(c => c.includes('border-')).replace('border-', '#') 
+        : '#d1d5db',
+      color: categoryColors[category]?.includes('text-') 
+        ? categoryColors[category].split(' ').find(c => c.includes('text-')).replace('text-', '#') 
+        : '#1f2937',
+      borderRadius: '4px',
+      padding: '2px 4px',
+      fontSize: '12px'
+    };
+    return { style };
   };
 
   return (
@@ -717,137 +746,188 @@ const TodoListPage = () => {
 
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold">Tasks ({filteredTasks.length})</h3>
+              <h3 className="text-xl font-semibold">
+                {viewMode === 'list' ? `Tasks (${filteredTasks.length})` : 'Calendar View'}
+              </h3>
               <div className="flex space-x-4">
                 <button
-                  onClick={() => handleSort('deadline')}
-                  className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+                  onClick={() => setViewMode('list')}
+                  className={`flex items-center text-sm px-3 py-1 rounded-md ${
+                    viewMode === 'list'
+                      ? 'bg-blue-500 text-white'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  Sort by Date
-                  {sortConfig.key === 'deadline' &&
-                    (sortConfig.direction === 'asc' ? (
-                      <ArrowUp size={14} className="ml-1" />
-                    ) : (
-                      <ArrowDown size={14} className="ml-1" />
-                    ))}
+                  <List size={14} className="mr-1" />
+                  List View
                 </button>
                 <button
-                  onClick={() => handleSort('title')}
-                  className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+                  onClick={() => setViewMode('calendar')}
+                  className={`flex items-center text-sm px-3 py-1 rounded-md ${
+                    viewMode === 'calendar'
+                      ? 'bg-blue-500 text-white'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  Sort by Title
-                  {sortConfig.key === 'title' &&
-                    (sortConfig.direction === 'asc' ? (
-                      <ArrowUp size={14} className="ml-1" />
-                    ) : (
-                      <ArrowDown size={14} className="ml-1" />
-                    ))}
+                  <CalendarIcon size={14} className="mr-1" />
+                  Calendar View
                 </button>
+                {viewMode === 'list' && (
+                  <>
+                    <button
+                      onClick={() => handleSort('deadline')}
+                      className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+                    >
+                      Sort by Date
+                      {sortConfig.key === 'deadline' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ArrowUp size={14} className="ml-1" />
+                        ) : (
+                          <ArrowDown size={14} className="ml-1" />
+                        ))}
+                    </button>
+                    <button
+                      onClick={() => handleSort('title')}
+                      className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+                    >
+                      Sort by Title
+                      {sortConfig.key === 'title' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ArrowUp size={14} className="ml-1" />
+                        ) : (
+                          <ArrowDown size={14} className="ml-1" />
+                        ))}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
-            {filteredTasks.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No tasks found. Add a new task or adjust your filters.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`border rounded-lg p-4 transition-all ${
-                      task.completed
-                        ? 'bg-gray-50 border-gray-200'
-                        : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3">
-                        <div>
-                          <button
-                            onClick={() => handleToggleComplete(task.id)}
-                            className={`w-6 h-6 rounded-full flex items-center justify-center border ${
-                              task.completed
-                                ? 'bg-green-500 border-green-500 text-white'
-                                : 'border-gray-300 bg-white'
-                            }`}
-                          >
-                            {task.completed && <Check size={14} />}
-                          </button>
-                        </div>
-                        <div className="flex-1">
-                          <h4
-                            className={`font-medium ${
-                              task.completed ? 'line-through text-gray-500' : 'text-gray-900'
-                            }`}
-                          >
-                            {task.title}
-                          </h4>
-                          {task.description && (
-                            <p
-                              className={`mt-1 text-sm ${
-                                task.completed ? 'text-gray-400' : 'text-gray-600'
+            {viewMode === 'list' ? (
+              filteredTasks.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No tasks found. Add a new task or adjust your filters.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className={`border rounded-lg p-4 transition-all ${
+                        task.completed
+                          ? 'bg-gray-50 border-gray-200'
+                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div>
+                            <button
+                              onClick={() => handleToggleComplete(task.id)}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center border ${
+                                task.completed
+                                  ? 'bg-green-500 border-green-500 text-white'
+                                  : 'border-gray-300 bg-white'
                               }`}
                             >
-                              {task.description}
-                            </p>
-                          )}
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                            {task.category && (
-                              <span
-                                className={`px-2 py-1 rounded-full ${
-                                  categoryColors[task.category] || 'bg-gray-100 text-gray-800'
+                              {task.completed && <Check size={14} />}
+                            </button>
+                          </div>
+                          <div className="flex-1">
+                            <h4
+                              className={`font-medium ${
+                                task.completed ? 'line-through text-gray-500' : 'text-gray-900'
+                              }`}
+                            >
+                              {task.title}
+                            </h4>
+                            {task.description && (
+                              <p
+                                className={`mt-1 text-sm ${
+                                  task.completed ? 'text-gray-400' : 'text-gray-600'
                                 }`}
                               >
-                                {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
-                              </span>
+                                {task.description}
+                              </p>
                             )}
-                            {task.timeCategory && task.category !== 'calendar' && (
-                              <span
-                                className={`px-2 py-1 rounded-full ${
-                                  categoryColors[task.timeCategory] || 'bg-gray-100 text-gray-800'
-                                }`}
-                              >
-                                {task.timeCategory.charAt(0).toUpperCase() + task.timeCategory.slice(1)}
-                              </span>
-                            )}
-                            {task.source === 'google' && (
-                              <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                                Google Calendar
-                              </span>
-                            )}
-                            {task.deadline && (
-                              <span className={`flex items-center ${getDueStatus(task.deadline)}`}>
-                                <Clock size={12} className="mr-1" />
-                                {formatDate(task.deadline)}
-                              </span>
-                            )}
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                              {task.category && (
+                                <span
+                                  className={`px-2 py-1 rounded-full ${
+                                    categoryColors[task.category] || 'bg-gray-100 text-gray-800'
+                                  }`}
+                                >
+                                  {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
+                                </span>
+                              )}
+                              {task.timeCategory && task.category !== 'calendar' && (
+                                <span
+                                  className={`px-2 py-1 rounded-full ${
+                                    categoryColors[task.timeCategory] || 'bg-gray-100 text-gray-800'
+                                  }`}
+                                >
+                                  {task.timeCategory.charAt(0).toUpperCase() + task.timeCategory.slice(1)}
+                                </span>
+                              )}
+                              {task.source === 'google' && (
+                                <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                                  Google Calendar
+                                </span>
+                              )}
+                              {task.deadline && (
+                                <span className={`flex items-center ${getDueStatus(task.deadline)}`}>
+                                  <Clock size={12} className="mr-1" />
+                                  {formatDate(task.deadline)}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        {task.source !== 'google' && (
-                          <>
-                            <button
-                              onClick={() => handleEditTask(task)}
-                              className="p-1 text-gray-500 hover:text-blue-600"
-                              title="Edit"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTask(task.id)}
-                              className="p-1 text-gray-500 hover:text-red-600"
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </>
-                        )}
+                        <div className="flex space-x-2">
+                          {task.source !== 'google' && (
+                            <>
+                              <button
+                                onClick={() => handleEditTask(task)}
+                                className="p-1 text-gray-500 hover:text-blue-600"
+                                title="Edit"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTask(task.id)}
+                                className="p-1 text-gray-500 hover:text-red-600"
+                                title="Delete"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )
+            ) : (
+              <div className="h-[600px]">
+                <BigCalendar
+                  localizer={localizer}
+                  events={calendarEvents}
+                  startAccessor="start"
+                  endAccessor="end"
+                  style={{ height: '100%' }}
+                  eventPropGetter={eventStyleGetter}
+                  onSelectEvent={(event) => {
+                    const task = event.task;
+                    showAlertMessage(
+                      `${task.title}\n${task.description ? `Description: ${task.description}\n` : ''}Deadline: ${formatDate(task.deadline)}`
+                    );
+                  }}
+                  defaultView="month"
+                  views={['month', 'week', 'day']}
+                  popup
+                  showMultiDayTimes
+                />
               </div>
             )}
           </div>
@@ -855,7 +935,7 @@ const TodoListPage = () => {
           {showAlert && (
             <div className="fixed bottom-4 right-4 z-50">
               <div className="bg-green-50 border border-green-200 w-64 p-4 rounded-md">
-                <p className="text-green-800">{alertMessage}</p>
+                <p className="text-green-800 whitespace-pre-line">{alertMessage}</p>
               </div>
             </div>
           )}
