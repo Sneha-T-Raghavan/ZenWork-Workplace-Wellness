@@ -4,7 +4,7 @@ import 'dotenv/config';
 import cookieParser from "cookie-parser";
 import connectDB from "./config/mongodb.js";
 import authRouter from './routes/authRoutes.js';
-import userRouter from "./routes/userRoutes.js';
+import userRouter from './routes/userRoutes.js';
 import journalRouter from "./routes/journalRoutes.js";  
 import pixelRoutes from './routes/pixelRoutes.js';
 
