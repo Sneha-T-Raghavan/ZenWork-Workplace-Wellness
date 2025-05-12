@@ -12,12 +12,12 @@ const app = express();
 const port = process.env.PORT || 4000;
 connectDB();
 
+// Single CORS middleware
 app.use(cors({
-  origin: "https://zenwork-workplace-wellness.vercel.app/", // Update after Vercel deployment
+  origin: "https://zenwork-workplace-wellness.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
-app.options('*', cors());
 
 app.use(express.json());
 app.use(cookieParser());
