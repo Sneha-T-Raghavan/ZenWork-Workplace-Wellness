@@ -11,27 +11,18 @@ import pixelRoutes from './routes/pixelRoutes.js';
 const app = express();
 const port = process.env.PORT || 4000;
 connectDB();
-
 const allowedOrigins = [
   'https://zenwork-workplace-wellness.vercel.app',
-  // Add any other origins you need to support, like development or preview URLs
   'https://zenwork-r3h9p0auv-sneha-t-raghavans-projects.vercel.app'
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);  // Changed from callback(null, origin) to callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins, // Pass the array directly instead of using a callback
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 
