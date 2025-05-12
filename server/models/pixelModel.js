@@ -1,34 +1,41 @@
 import mongoose from 'mongoose';
 
 const pixelArtSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   pixelData: {
-    type: Array,
-    required: true
+    type: [String],
+    required: true,
   },
   template: {
     type: String,
-    enum: ['heart', 'mushroom', 'free'],
-    required: true
+    enum: ['heart', 'mushroom', 'free', 'custom'], // Add 'custom'
+    required: true,
   },
   gridSize: {
     type: Number,
-    required: function() { return this.template === 'free'; }
+    required: false,
+  },
+  templateData: {
+    type: [[Number]], // 2D array for custom template grid
+    required: false, // Only for 'custom' templates
+  },
+  colorMap: {
+    type: Map,
+    of: String, // e.g., { "1": "rgb(255,0,0)" }
+    required: false, // Only for 'custom' templates
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-const PixelArt = mongoose.model('PixelArt', pixelArtSchema);
-
-export default PixelArt;
+export default mongoose.model('PixelArt', pixelArtSchema);

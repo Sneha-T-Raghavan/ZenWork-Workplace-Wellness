@@ -10,6 +10,7 @@ import Home from './pages/Home'
 import Journal from './pages/Journal';
 import Bingogame from './pages/Bingogame'
 import BreakTimerQuest from './pages/BreakTimerQuest'
+import TodoListPage from './pages/TodoListPage';
 
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
         <Route path='/journal' element={<Journal/>}/>
         <Route path="/bingo-game" element={<Bingogame />} />
         <Route path="/break-timer-quest" element={<BreakTimerQuest />} />
+        <Route path="/todo-list" element={<TodoListPage />} /> 
       </Routes>
     </div>
   )

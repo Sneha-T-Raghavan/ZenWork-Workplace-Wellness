@@ -96,6 +96,14 @@ const Navbar = () => {
         >
           Break Timer Quest
         </li>
+        <li
+        className={`md:px-4 md:py-2 cursor-pointer ${
+          location.pathname === "/todo-list" ?"text-[#2a4192]" : "hover:text-[#f9d4d2]"
+        }`}
+        onClick={() => navigate("/todo-list")}
+      >
+        Task Manager
+      </li>
       </ul>
     </div>
   )}
