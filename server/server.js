@@ -13,7 +13,7 @@ const port = process.env.PORT || 4000;
 connectDB();
 
 app.use(cors({
-  origin: "https://your-vercel-domain.vercel.app", // Update after Vercel deployment
+  origin: "https://zenwork-workplace-wellness.vercel.app/", // Update after Vercel deployment
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
